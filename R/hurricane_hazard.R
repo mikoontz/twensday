@@ -21,8 +21,7 @@ hurdat <- get_hurdat() %>%
            crs = 4326, agr = "constant") %>%
   st_transform(crs = projection(empty_grid))
 
-# Filter to the years 1983-2018 ('83 is a breakpoint in the data)
-min_year <- 1983
+min_year <- 1950
 max_year <- 2018
 n_year <- length(min_year:max_year)
 
