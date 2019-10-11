@@ -4,7 +4,6 @@ library(mapview)
 library(viridis)
 library(sf)
 
-
 tornadoes <- raster('output/tornado_hazard.tif')
 hurricanes <- raster('output/hurricane_hazard.tif')
 
@@ -17,8 +16,8 @@ plot(conus)
 torn_masked <- mask(tornadoes, conus)
 hurr_masked <- mask(hurricanes, conus)
 
-tq <- quantile(torn_masked, .99)
-hq <- quantile(hurr_masked, .99)
+tq <- quantile(torn_masked, .95)
+hq <- quantile(hurr_masked, .95)
 
 tmask <- torn_masked > tq
 hmask <- hurr_masked > hq
