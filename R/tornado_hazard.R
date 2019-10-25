@@ -12,6 +12,10 @@ source("R/download_grid.R")
 empty_grid <- download_grid() %>%
   raster
 
+conus <- st_read("https://github.com/PublicaMundi/MappingAPI/raw/master/data/geojson/us-states.json") %>%
+  filter(!name %in% c("Alaska", "Hawaii", "Puerto Rico")) %>%
+  st_transform(projection(empty_grid))
+
 # Get the tornado data
 tornado_paths <- tornadoes() %>%
   as('sf') %>%
@@ -36,9 +40,26 @@ tornado_counts <- buffered_paths %>%
   group_by(yr) %>%
   summarize %>% 
   st_cast("MULTIPOLYGON") %>%
-  fasterize(raster = empty_grid, fun = 'sum', background = 0)
+  fasterize(raster = empty_grid, fun = 'sum', background = 0) %>%
+  mask(conus)
 tornado_freq <- tornado_counts / n_year
 plot(tornado_freq)
+
+# Smoothing
+gf <- focalWeight(tornado_freq, 3000, "circle")
+rg <- focal(tornado_freq, w = gf) %>%
+  mask(conus)
+plot(rg, col = viridis::viridis(100))
+
+rg_01 <- rg / cellStats(rg, stat = "sum")
+rg_scaled <- rg_01 * cellStats(tornado_freq, stat = "sum")
+
+cellStats(tornado_freq, stat = "sum")
+cellStats(rg_scaled, stat = "sum")
+
 writeRaster(tornado_freq, 
             file.path('output', 'tornado_hazard.tif'), 
+            overwrite = TRUE)
+writeRaster(rg_scaled, 
+            file.path('output', 'smoothed_tornado_hazard.tif'), 
             overwrite = TRUE)
