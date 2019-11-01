@@ -30,8 +30,9 @@ tornado_paths <- tornado_paths %>%
   filter(yr >= min_year, 
          yr <= max_year)
 
-# buffer at 10 km
-buffered_paths <- st_buffer(tornado_paths, dist = 10000)
+# buffer at 300 m
+# https://journals.ametsoc.org/doi/pdf/10.1175/JAMC-D-13-0235.1
+buffered_paths <- st_buffer(tornado_paths, dist = 300)
 
 # Compute an annual empirical frequency for each grid cell
 # (# years with events / total # years)
@@ -46,7 +47,7 @@ tornado_freq <- tornado_counts / n_year
 plot(tornado_freq)
 
 # Smoothing
-gf <- focalWeight(tornado_freq, 3000, "circle")
+gf <- focalWeight(tornado_freq, 10000, "circle")
 rg <- focal(tornado_freq, w = gf) %>%
   mask(conus)
 plot(rg, col = viridis::viridis(100))

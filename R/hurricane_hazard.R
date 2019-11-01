@@ -6,7 +6,7 @@ library(googledrive)
 library(raster)
 library(fasterize)
 library(lubridate)
-
+library(tidyverse)
 
 source("R/download_grid.R")
 
@@ -14,47 +14,18 @@ empty_grid <- download_grid() %>%
   raster
 
 
-# Load the HURDAT data
-hurdat <- get_hurdat() %>%
-  filter(!is.na(Lon), !is.na(Lat)) %>%
-  st_as_sf(coords = c("Lon", "Lat"), 
-           crs = 4326, agr = "constant") %>%
-  st_transform(crs = projection(empty_grid))
+url <- "https://www.nhc.noaa.gov/gis/hazardmaps/US_SLOSH_MOM_Inundation.zip"
+out_path <- file.path("data", basename(url))
+download.file(url, destfile = out_path)
+unzip(out_path, exdir = "data", overwrite = FALSE)
 
-min_year <- 1950
-max_year <- 2018
-n_year <- length(min_year:max_year)
+hurricane_hazard <- raster("data/US_SLOSH_MOM_Inundation_v2/US_Category4_MOM_Inundation_HighTide.tif")
+plot(hurricane_hazard)
 
-hurdat <- hurdat %>%
-  filter(year(DateTime) >= min_year, 
-         year(DateTime) <= max_year)
+"data/US_SLOSH_MOM_Inundation_v2/US_Category4_MOM_Inundation_HighTide.tif"
 
-plot(hurdat['Wind'])
+system("rm data/stormsurge.tif")
+system("gdalwarp data/US_SLOSH_MOM_Inundation_v2/US_Category4_MOM_Inundation_HighTide.tif data/stormsurge.tif -t_srs '+proj=aea +lat_1=29.5 +lat_2=45.5 +lat_0=23 +lon_0=-96 +x_0=0 +y_0=0 +datum=NAD83 +units=m +no_defs +ellps=GRS80 +towgs84=0,0,0' -tr 250 250")
 
-# filter to hurricanes and buffer paths
-# at 47 km (mean radius of maximum wind according to Wikipedia)
-hurdat_buffered <- hurdat %>%
-  group_by(Key) %>%
-  filter(any(Status == "HU")) %>%
-  summarize(n_pt = n(), 
-            do_union = FALSE, 
-            year = min(year(DateTime))) %>%
-  st_cast("LINESTRING") %>% 
-  st_buffer(47000) 
-plot(hurdat_buffered)
+storm_surge <- raster('data/stormsurge.tif')
 
-# for each year, take the union, and use it to compute an empirical
-# annual probability that a hurricane passes over a grid cell
-annual_hurdat <- hurdat_buffered %>%
-  group_by(year) %>%
-  summarize %>%
-  st_cast("MULTIPOLYGON")
-plot(annual_hurdat)
-
-# grid and save
-hurdat_raster <- fasterize(annual_hurdat, raster = empty_grid, fun = "sum", 
-                           background = 0)
-hurdat_freq <- hurdat_raster / n_year
-plot(hurdat_freq)
-writeRaster(hurdat_freq, file.path('output', 'hurricane_hazard.tif'), 
-            overwrite = TRUE)
