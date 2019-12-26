@@ -12,15 +12,13 @@ library(USAboundaries)
 library(sf)
 
 # test case for Florida
+
 fl <- 
   USAboundaries::us_states(states = "Florida", resolution = "high") %>% 
   sf::st_transform(crs = crs(hazards))
 
 plot(st_geometry(fl))
 
-# read the local hazard layers into memory, downloading first
-# if necessary
-# the rasterStack is called "hazards"
 hazard_list <- list.files("output/hazards_florida/", full.names = TRUE)
 hazards <- lapply(hazard_list, raster::raster) %>% raster::stack()
 
