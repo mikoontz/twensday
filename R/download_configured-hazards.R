@@ -20,7 +20,7 @@ if(length(local_hazards) == 0) {
 }
 
 # get the googledrive info for all the configured hazards
-drive_hazards <- googledrive::drive_ls(path = "TWENSDAY/Data/hazards-on-zillow-grid")
+drive_hazards <- googledrive::drive_ls(path = googledrive::as_id("1B6O50qjRqfctb7WJ4SOOLEPFYTJJDNga"))
 
 # we only need to download files that aren't currently on disk
 to_download_idx <- !(drive_hazards$name %in% local_hazards)
