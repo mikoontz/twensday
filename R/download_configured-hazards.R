@@ -40,7 +40,7 @@ drive_hazards %>%
 hazard_names <- 
   list.files(path_out) %>% 
   str_split(pattern = "_", simplify = TRUE) %>% 
-  as_tibble() %>% 
+  as.data.frame(stringsAsFactors = FALSE) %>% 
   dplyr::pull(V1)
 
 # read the hazards that are now local files using the
