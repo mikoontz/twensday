@@ -1,8 +1,4 @@
-# download hazard layer from url, and configure it to match the Zillow grid
-
-# download the hazard raster layer and reproject to the template grid
-# needs source url, hazard name
-# download the hazard raster layer and reproject to the template grid
+# download the hazard raster layer from url source
 # needs source url, hazard name, the filename of the hazard (because there
 # are often several files in each unzipped directory of files associated
 # with a singl hazard)
