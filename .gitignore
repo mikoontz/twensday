@@ -27,3 +27,5 @@ rsconnect/
 twensday.Rproj
 .DS_Store
 output/
+figures/
+incubator/
