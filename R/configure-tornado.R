@@ -5,10 +5,17 @@ library(fasterize)
 library(sf)
 library(magrittr)
 library(tidyverse)
+library(USAboundaries)
+library(velox)
 
+source("R/download_grid.R")
 
 empty_grid <- download_grid() %>%
   raster
+
+if(!dir.exists(file.path("output", "hazards"))) {
+  dir.create(file.path("output", "hazards"), recursive = TRUE)
+}
 
 hazard_name <- "tornado"
 hazard_path_out <- file.path("output", "hazards", paste0(hazard_name, "_zillow-grid.tif"))
@@ -17,8 +24,9 @@ overwrite <- FALSE
 
 if(!file.exists(hazard_path_out) | overwrite) {
 
-  conus <- st_read("https://github.com/PublicaMundi/MappingAPI/raw/master/data/geojson/us-states.json") %>%
-    filter(!name %in% c("Alaska", "Hawaii", "Puerto Rico")) %>%
+  conus <- 
+    USAboundaries::us_boundaries(type = "state", resolution = "high") %>%
+    filter(!state_name %in% c("Alaska", "Hawaii") & jurisdiction_type == "state") %>%
     st_transform(projection(empty_grid))
   
   # Get the tornado data
@@ -46,15 +54,22 @@ if(!file.exists(hazard_path_out) | overwrite) {
     group_by(yr) %>%
     summarize %>% 
     st_cast("MULTIPOLYGON") %>%
-    fasterize(raster = empty_grid, fun = 'sum', background = 0) %>%
-    mask(conus)
+    fasterize(raster = empty_grid, fun = 'sum', background = 0)
+  
+  
   tornado_freq <- tornado_counts / n_year
   plot(tornado_freq)
   
   # Smoothing
   gf <- focalWeight(tornado_freq, 10000, "circle")
-  rg <- focal(tornado_freq, w = gf) %>%
-    mask(conus)
+  vx <- velox::velox(x = tornado_freq)
+  
+  # meanFocal operation takes about 38 minutes on the Alienware. 
+  # Velox should be quite a bit faster than the raster::focal()
+  # implementation. See http://philipphunziker.com/velox/benchmark.html
+  vx$meanFocal(weights = gf)
+  rg <- vx$as.RasterLayer()
+  
   plot(rg, col = viridis::viridis(100))
   
   rg_01 <- rg / cellStats(rg, stat = "sum")
@@ -63,7 +78,14 @@ if(!file.exists(hazard_path_out) | overwrite) {
   cellStats(tornado_freq, stat = "sum")
   cellStats(rg_scaled, stat = "sum")
   
-  writeRaster(rg_scaled, 
-              file.path('output', 'hazards', 'tornado_zillow-grid.tif'), 
+  # Mask out the pixels outside of CONUS using the water mask derived from the 
+  # USAboundaries package high resolution CONUS shapefile (rasterized to the Zillow
+  # grid) and the flood hazard layer, with all values of 999 masked out (representing
+  # persistent water bodies)
+  mask <- raster::raster("output/water-mask_zillow-grid.tif")
+  rg_scaled <- raster::mask(x = rg_scaled, mask = mask)
+  
+  writeRaster(x = rg_scaled, 
+              filename = hazard_path_out, 
               overwrite = TRUE)
 }

@@ -11,7 +11,9 @@ empty_grid <-
   download_grid() %>%
   raster()
 
-dir.create(file.path("output", "hazards"), recursive = TRUE)
+if(!dir.exists(file.path("output", "hazards"))) {
+  dir.create(file.path("output", "hazards"), recursive = TRUE)
+}
 
 hazard_name <- "fire"
 hazard_file <- "Data/whp_2018_continuous/whp2018_cnt/dblbnd.adf"
@@ -31,10 +33,37 @@ overwrite <- FALSE
 
 if(!file.exists(hazard_path_out) | overwrite) {
   
-  hazard_orig <- raster::raster(hazard_path_src)
-  hazard <- raster::resample(x = hazard_orig, y = empty_grid, method = "bilinear")
+  hazard_path_tmp <- file.path("data", "hazards", hazard_name, paste0(hazard_name, "_temp.tif"))
   
-  raster::writeRaster(x = hazard, filename = hazard_path_out, overwrite = overwrite)
+  gdalwarp(srcfile = hazard_path_src, 
+           dstfile = hazard_path_tmp, 
+           t_srs = crs(empty_grid), 
+           tr = c(250, 250), 
+           overwrite = TRUE)
+  
+  unlink(paste0(hazard_path_tmp, ".aux.xml"))
+
+  gdalUtils::align_rasters(unaligned = hazard_path_tmp, 
+                           reference = empty_grid@file@name, 
+                           dstfile = hazard_path_out, 
+                           overwrite = TRUE)
+  
+  unlink(hazard_path_tmp)
+  
+  hazard <- raster::raster(hazard_path_out)
+  
+  # Mask out the pixels outside of CONUS using the water mask derived from the 
+  # USAboundaries package high resolution CONUS shapefile (rasterized to the Zillow
+  # grid) and the flood hazard layer, with all values of 999 masked out (representing
+  # persistent water bodies)
+  if(!file.exists(file.path("output", "water-mask_zillow-grid.tif"))) {
+    source("R/configure-flood.R")
+  }
+  
+  mask <- raster::raster("output/water-mask_zillow-grid.tif")
+  hazard <- raster::mask(x = hazard, mask = mask)
+  
+  raster::writeRaster(x = hazard, filename = hazard_path_out, overwrite = TRUE)
 
 }
 

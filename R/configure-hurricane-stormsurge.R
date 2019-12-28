@@ -13,9 +13,11 @@ source("R/download_grid.R")
 empty_grid <- download_grid() %>%
   raster
 
-dir.create(file.path("output", "hazards"), recursive = TRUE)
+if(!dir.exists(file.path("output", "hazards"))) {
+  dir.create(file.path("output", "hazards"), recursive = TRUE)
+}
 
-hazard_name <- "hurricane-stormsurge"
+hazard_name <- "hurricane.stormsurge"
 hazard_file <- "US_SLOSH_MOM_Inundation_v2/US_Category4_MOM_Inundation_HighTide.tif"
 url <- "https://www.nhc.noaa.gov/gis/hazardmaps/US_SLOSH_MOM_Inundation.zip"
 
@@ -47,18 +49,24 @@ if(!file.exists(hazard_path_out) | overwrite) {
   unlink(hazard_path_tmp)
   
   # Read the hazard layer using the raster package so we can mask it
-  hazard <- raster::raster(hazard_path_out)
+  hazard <- 
+    raster::raster(hazard_path_out) %>% 
+    # Make 0/NA handling consistent by using a 0 within CONUS for "no hazard"
+    raster::reclassify(rcl = cbind(NA, 0))
   
-  # Make 0/NA handling consistent by using a 0 within CONUS for "no hazard"
-  hazard[is.na(hazard[])] <- 0
+  # Mask out the pixels outside of CONUS using the water mask derived from the 
+  # USAboundaries package high resolution CONUS shapefile (rasterized to the Zillow
+  # grid) and the flood hazard layer, with all values of 999 masked out (representing
+  # persistent water bodies)
+  if(!file.exists(file.path("output", "water-mask_zillow-grid.tif"))) {
+    source("R/configure-flood.R")
+  }
   
-  # Then mask out the pixels outside of CONUS using the fire hazard layer
-  # (which already properly counts "no hazard" as 0 and NA as "outside of CONUS")
-  mask <- raster::raster("output/hazards/fire_zillow-grid.tif")
+  mask <- raster::raster("output/water-mask_zillow-grid.tif")
   hazard <- raster::mask(x = hazard, mask = mask)
   
   # write to disk
-  raster::writeRaster(x = hazard, filename = hazard_path_out, overwrite = overwrite)
+  raster::writeRaster(x = hazard, filename = hazard_path_out, overwrite = TRUE)
   
 }
 
