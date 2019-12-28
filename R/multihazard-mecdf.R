@@ -18,7 +18,6 @@ library(cowplot)
 library(gridGraphics)
 
 # test case for Florida
-<<<<<<< HEAD
 # Get the hazard rasters and stack them.
 hazard_list_fl <- list.files("output/hazards_florida/", full.names = TRUE)
 hazards_fl <- lapply(hazard_list_fl, raster::raster) %>% raster::stack()
@@ -131,24 +130,3 @@ dev.off()
 
 # Florida case takes ~ 1.6 hours
 # 6*(2353385^2) / 6e9 / 60 / 60
-=======
-fl <- 
-  USAboundaries::us_states(states = "Florida", resolution = "high") %>% 
-  sf::st_transform(crs = crs(hazards))
-
-plot(st_geometry(fl))
-
-# read the local hazard layers into memory, downloading first
-# if necessary
-# the rasterStack is called "hazards"
-hazard_list <- list.files("output/hazards_florida/", full.names = TRUE)
-hazards <- lapply(hazard_list, raster::raster) %>% raster::stack()
-
-multihazard_matrix <- getValues(hazards)
-
-obj <- initF(multihazard_matrix, 4)
-
-(start <- Sys.time())
-hazard_mecdf <- emcdf(obj, multihazard_matrix[1:1e5, ])
-(Sys.time() - start)
->>>>>>> work with just Florida as a test case
