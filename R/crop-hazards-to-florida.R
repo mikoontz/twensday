@@ -32,6 +32,6 @@ lapply(hazard_list, FUN = function(x) {
   hazard <- raster::raster(x)  
   hazard <- raster::crop(x = hazard, y = fl)
   
-  raster::writeRaster(x = hazard, filename = file.path("output", "hazards_florida", paste0(hazard_name, "_florida.tif")))
+  raster::writeRaster(x = hazard, filename = file.path("output", "hazards_florida", paste0(hazard_name, "_florida.tif")), overwrite = TRUE)
   
 })
