@@ -16,7 +16,9 @@ local_hazards <- list.files(path_out)
 # if no configured hazards currently downloaded, create
 # the directory where they can go
 if(length(local_hazards) == 0) {
-  dir.create(path_out, recursive = TRUE)
+  if(!dir.exists(path_out)) {
+    dir.create(path_out, recursive = TRUE)
+  }
 }
 
 # get the googledrive info for all the configured hazards
