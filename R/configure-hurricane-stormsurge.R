@@ -9,6 +9,7 @@ library(lubridate)
 library(tidyverse)
 
 source("R/download_grid.R")
+source("R/download_hazard.R")
 
 empty_grid <- download_grid() %>%
   raster
@@ -17,7 +18,7 @@ if(!dir.exists(file.path("output", "hazards"))) {
   dir.create(file.path("output", "hazards"), recursive = TRUE)
 }
 
-hazard_name <- "hurricane.stormsurge"
+hazard_name <- "hurricane-stormsurge"
 hazard_file <- "US_SLOSH_MOM_Inundation_v2/US_Category4_MOM_Inundation_HighTide.tif"
 url <- "https://www.nhc.noaa.gov/gis/hazardmaps/US_SLOSH_MOM_Inundation.zip"
 
@@ -39,12 +40,12 @@ if(!file.exists(hazard_path_out) | overwrite) {
            dstfile = hazard_path_tmp, 
            t_srs = crs(empty_grid), 
            tr = c(250, 250), 
-           overwrite = overwrite)
+           overwrite = TRUE)
   
   gdalUtils::align_rasters(unaligned = hazard_path_tmp, 
                            reference = empty_grid@file@name, 
                            dstfile = hazard_path_out, 
-                           overwrite = overwrite)
+                           overwrite = TRUE)
   
   unlink(hazard_path_tmp)
   
