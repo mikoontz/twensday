@@ -19,7 +19,7 @@ empty_grid <-
 
 # These set up the variables to be used to get the hazard data and name
 # new output files appropriately
-hazard_name <- "hurricane.wind"
+hazard_name <- "hurricane-wind"
 hazard_file <- "CycloneFrequency_1980_2000_projected/gdcyc_NAD.tif"
 zip_path <- file.path("data", "hazards", "CycloneFrequency_1980_2000_projected.zip")
 
@@ -45,11 +45,14 @@ if(!file.exists(hazard_path_out) | overwrite) {
   
   hazard_path_tmp <- file.path("data", "hazards", hazard_name, paste0(hazard_name, "_temp.tif"))
   
+  hazard_orig <- raster::raster(hazard_path_src)
+  
   gdalwarp(srcfile = hazard_path_src, 
            dstfile = hazard_path_tmp, 
            t_srs = crs(empty_grid), 
            tr = c(250, 250), 
-           overwrite = TRUE)
+           overwrite = TRUE,
+           s_srs = crs(hazard_orig))
   
   gdalUtils::align_rasters(unaligned = hazard_path_tmp, 
                            reference = empty_grid@file@name, 
