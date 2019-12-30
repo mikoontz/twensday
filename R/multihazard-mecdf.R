@@ -128,5 +128,5 @@ dev.off()
 # # Seems to take about 1 second per 6 billion comparisons (each row of 6 is compared to all other rows)
 # 6*(120579008 * 120579008) / 6e9 / 60 / 60 / 24
 
-# Florida case takes ~ 1.6 hours
-# 6*(2353385^2) / 6e9 / 60 / 60
+# Florida case takes ~ 2.1 hours
+# 2597194^2 / 9e8 / 60 / 60
