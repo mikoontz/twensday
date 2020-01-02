@@ -80,6 +80,9 @@ values(hurricane.wind) <- multihazard_dt$hurricane.wind_prob
 tornado <- hazards_fl[[1]]
 values(tornado) <- multihazard_dt$tornado_prob
 
+# write to disk
+data.table::fwrite(x = multihazard_dt, file = file.path("output", "multihazard-ecdf_florida.csv"))
+
 # Set up the plots for arranging in a multi-panel plot
 p_earthquake <- ~plot(earthquake, col = colorspace::sequential_hcl(n = 100, palette = "BrwnYl"), main = "Relative earthquake risk")
 p_fire <- ~plot(fire, col = viridis(100, option = "inferno"), main = "Relative fire risk")
