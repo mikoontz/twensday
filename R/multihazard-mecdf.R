@@ -105,6 +105,62 @@ dev.off()
 
 ###
 
+# Treat hazards as independent, and multiply the CDFs
+
+multihazard_dt <- data.table::fread(file = file.path("output", "multihazard-ecdf_florida.csv"))
+
+multihazard_dt[, multihazard_independent_prob := 
+                 earthquake_prob *
+                 fire_prob *
+                 flood_prob *
+                 hurricane.stormsurge_prob *
+                 hurricane.wind_prob *
+                 tornado_prob]
+
+multihazard_raster_independent <- hazards_fl[[1]]
+# Set the values of the multihazard raster (both masked [i.e., NAs] and unmasked [the Pr(X <= x) values])
+# of the multihazard raster to be the values calculated using the multivariate ecdf
+values(multihazard_raster_independent) <- multihazard_dt$multihazard_independent_prob
+
+p_multihazard <- ~plot(multihazard_raster, col = viridis(100), main = "Relative multihazard risk")
+p_multihazard_independent <- ~plot(multihazard_raster_independent, col = viridis(100), main = "Relative multihazard risk\n(treated as independent hazards)")
+
+# put the individual hazard plots with the multihazard plot (with the multihazard plot being bigger)
+all_hazards_independent <- plot_grid(p_multihazard, p_multihazard_independent, ncol = 2, rel_widths = c(1, 1))
+
+# Save the figure to disk
+png("figures/multihazard-risk_dependent-vs-independent.png", width = 20, height = 10, units = "in", res = 600)
+all_hazards_independent
+dev.off()
+
+###
+
+# Treat the hazards as independent, and add the CDFs
+
+multihazard_dt[, multihazard_independent_prob_add := 
+                 earthquake_prob +
+                 fire_prob +
+                 flood_prob +
+                 hurricane.stormsurge_prob +
+                 hurricane.wind_prob +
+                 tornado_prob]
+
+multihazard_raster_independent_add <- hazards_fl[[1]]
+# Set the values of the multihazard raster (both masked [i.e., NAs] and unmasked [the Pr(X <= x) values])
+# of the multihazard raster to be the values calculated using the multivariate ecdf
+values(multihazard_raster_independent_add) <- multihazard_dt$multihazard_independent_prob_add
+
+p_multihazard <- ~plot(multihazard_raster, col = viridis(100), main = "Relative multihazard risk")
+p_multihazard_independent_add <- ~plot(multihazard_raster_independent_add, col = viridis(100), main = "Relative multihazard risk\n(treated as independent addititve hazards)")
+
+# put the individual hazard plots with the multihazard plot (with the multihazard plot being bigger)
+all_hazards_independent_add <- plot_grid(p_multihazard, p_multihazard_independent_add, ncol = 2, rel_widths = c(1, 1))
+
+# Save the figure to disk
+png("figures/multihazard-risk_dependent-vs-independent_addition.png", width = 20, height = 10, units = "in", res = 600)
+all_hazards_independent_add
+dev.off()
+
 # # For the whole country. Needs some work to make this fast enough to be useful.
 # # Current approach will take ~168 days on 10 threads.
 # # Potentially promising approaches:
