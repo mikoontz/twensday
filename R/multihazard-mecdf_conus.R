@@ -95,3 +95,11 @@ hazard_plots <- plot_grid(p_earthquake, p_fire, p_flood, p_multihazard_multiply,
 png("figures/multihazard-risk_conus.png", width = 30, height = 10, units = "in", res = 600)
 hazard_plots
 dev.off()
+
+png("figures/multihazard-risk-multiplicative_conus.png", width = 20, height = 10, units = "in", res = 600)
+plot(multivariate_multiply_raster, col = viridis(100), main = "Relative multihazard risk (multiplicative)")
+dev.off()
+
+png("figures/multihazard-risk-additive_conus.png", width = 20, height = 10, units = "in", res = 600)
+plot(multivariate_add_raster, col = viridis(100), main = "Relative multihazard risk (additive)")
+dev.off()
