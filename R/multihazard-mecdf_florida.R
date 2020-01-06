@@ -99,7 +99,7 @@ individual_hazards <- plot_grid(p_earthquake, p_fire, p_flood, p_tornado, p_hurr
 all_hazards <- plot_grid(individual_hazards, p_multihazard, ncol = 2, rel_widths = c(1.5, 1))
 
 # Save the figure to disk
-png("figures/multihazard-risk.png", width = 30, height = 10, units = "in", res = 600)
+png("figures/multihazard-risk_florida.png", width = 30, height = 10, units = "in", res = 600)
 all_hazards
 dev.off()
 
@@ -129,7 +129,7 @@ p_multihazard_independent <- ~plot(multihazard_raster_independent, col = viridis
 all_hazards_independent <- plot_grid(p_multihazard, p_multihazard_independent, ncol = 2, rel_widths = c(1, 1))
 
 # Save the figure to disk
-png("figures/multihazard-risk_dependent-vs-independent.png", width = 20, height = 10, units = "in", res = 600)
+png("figures/multihazard-risk_dependent-vs-independent_florida.png", width = 20, height = 10, units = "in", res = 600)
 all_hazards_independent
 dev.off()
 
@@ -157,7 +157,7 @@ p_multihazard_independent_add <- ~plot(multihazard_raster_independent_add, col =
 all_hazards_independent_add <- plot_grid(p_multihazard, p_multihazard_independent_add, ncol = 2, rel_widths = c(1, 1))
 
 # Save the figure to disk
-png("figures/multihazard-risk_dependent-vs-independent_addition.png", width = 20, height = 10, units = "in", res = 600)
+png("figures/multihazard-risk_dependent-vs-independent_addition_florida.png", width = 20, height = 10, units = "in", res = 600)
 all_hazards_independent_add
 dev.off()
 
