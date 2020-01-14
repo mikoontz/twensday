@@ -3,9 +3,6 @@
 library(tidyverse)
 library(raster)
 library(googledrive)
-# devtools::install_github(repo = "JoshOBrien/rasterDT")
-library(rasterDT)
-library(gdalUtils)
 
 # make the functions available to download the Zillow grid
 source("R/download_grid.R")
@@ -29,6 +26,11 @@ zip_path <- file.path("data", "hazards", "CycloneFrequency_1980_2000_projected.z
 # The hurricane wind data is on the Google Drive
 hazard_id <- "1REzIWNeq4zwwZdiTT2YBa7UYXTYA-r2s"
 
+hazard_file <- "gdcyc/gdcyc.asc"
+zip_path <- file.path("data", "hazards", "gdcyc_cyclone.zip")
+hazard_id <- "1whh-JSmF7v6vJm35lgQAAt5bs01Phb_t"
+
+
 # Names of the files (to read and manipulate, and then what to call it upon
 # export)
 hazard_path_src <- file.path("data", "hazards", hazard_name, hazard_file)
@@ -43,7 +45,7 @@ if(!file.exists(hazard_path_out) | overwrite) {
   googledrive::drive_download(hazard_metadata, path = zip_path)
   
   # unzip the data file
-  unzip(zip_path, overwrite = FALSE, exdir = file.path("data", "hazards", hazard_name))
+  unzip(zip_path, overwrite = TRUE, exdir = file.path("data", "hazards", hazard_name))
   unlink(zip_path)
   
   hazard_path_tmp <- file.path("data", "hazards", hazard_name, paste0(hazard_name, "_temp.tif"))
@@ -66,9 +68,14 @@ if(!file.exists(hazard_path_out) | overwrite) {
   
   unlink(hazard_path_tmp)
   
+  # This source represents records for 21 years (Jan 1, 1980 to Dec 31, 2000)
+  # https://sedac.ciesin.columbia.edu/data/set/ndh-cyclone-hazard-frequency-distribution
+  # One caveat is that there is a mask applied to 1 km grid cells to exclude
+  # cells with <5 people per square km or without significant agriculture
+  
   # Make 0/NA handling consistent by using a 0 within CONUS for "no hazard"
   hazard <- 
-    rasterDT::subsDT(x = hazard, dict = data.table(by = NA, which = 0), subsWithNA = FALSE)
+    raster::reclassify(hazard, rcl = cbind(NA, 0))
   
   # Mask out the pixels outside of CONUS using the water mask derived from the 
   # USAboundaries package high resolution CONUS shapefile (rasterized to the Zillow
