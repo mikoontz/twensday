@@ -3,6 +3,9 @@
 library(tidyverse)
 library(raster)
 library(googledrive)
+# devtools::install_github(repo = "JoshOBrien/rasterDT")
+library(rasterDT)
+library(gdalUtils)
 
 # make the functions available to download the Zillow grid
 source("R/download_grid.R")
@@ -75,8 +78,8 @@ if(!file.exists(hazard_path_out) | overwrite) {
   
   # Make 0/NA handling consistent by using a 0 within CONUS for "no hazard"
   hazard <- 
-    raster::reclassify(hazard, rcl = cbind(NA, 0))
-  
+    rasterDT::subsDT(x = hazard, dict = data.table(by = NA, which = 0), subsWithNA = FALSE)
+
   # Mask out the pixels outside of CONUS using the water mask derived from the 
   # USAboundaries package high resolution CONUS shapefile (rasterized to the Zillow
   # grid) and the flood hazard layer, with all values of 999 masked out (representing
