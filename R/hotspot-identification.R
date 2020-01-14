@@ -13,3 +13,11 @@ empty_grid <-
 
 multihazard_dt <- data.table::fread("output/multihazard-ecdf_conus.csv")
 
+fl <- 
+  USAboundaries::us_boundaries(resolution = "high", states = "Florida") %>% 
+  st_transform(crs(multivariate_multiply_raster))
+
+multivariate_multiply_raster_fl <- raster::crop(multivariate_multiply_raster, fl)
+
+plot(multivariate_multiply_raster_fl, col = viridis(100))
+plot(multihazard_raster, col = viridis(100))
