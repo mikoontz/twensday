@@ -77,29 +77,72 @@ values(tornado) <- multihazard_dt$tornado_prob
 
 
 # Set up the plots for arranging in a multi-panel plot
-p_earthquake <- ~plot(earthquake, col = colorspace::sequential_hcl(n = 100, palette = "BrwnYl"), main = "Relative earthquake risk")
-p_fire <- ~plot(fire, col = viridis(100, option = "inferno"), main = "Relative fire risk")
-p_flood <- ~plot(flood, col = colorspace::sequential_hcl(n = 100, palette = "Teal"), main = "Relative flood risk")
-p_tornado <- ~plot(tornado, col = viridis(100, option = "E"), main = "Relative tornado risk")
-p_hurricane.stormsurge <- ~plot(hurricane.stormsurge, col = colorspace::sequential_hcl(n = 100, palette = "Dark Mint"), main = "Relative hurricane stormsurge risk")
-p_hurricane.wind <- ~plot(hurricane.wind, col = colorspace::sequential_hcl(n = 100, palette = "Purple-Blue"), main = "Relative hurricane wind risk")
+p_earthquake <- ~plot(earthquake, col = colorspace::sequential_hcl(n = 100, palette = "BrwnYl"), main = "Relative earthquake hazard")
+p_fire <- ~plot(fire, col = viridis(100, option = "inferno"), main = "Relative fire hazard")
+p_flood <- ~plot(flood, col = colorspace::sequential_hcl(n = 100, palette = "Teal"), main = "Relative flood hazard")
+p_tornado <- ~plot(tornado, col = viridis(100, option = "E"), main = "Relative tornado hazard")
+p_hurricane.stormsurge <- ~plot(hurricane.stormsurge, col = colorspace::sequential_hcl(n = 100, palette = "Dark Mint"), main = "Relative hurricane stormsurge hazard")
+p_hurricane.wind <- ~plot(hurricane.wind, col = colorspace::sequential_hcl(n = 100, palette = "Purple-Blue"), main = "Relative hurricane wind hazard")
 
-p_multihazard_multiply <- ~plot(multivariate_multiply_raster, col = viridis(100), main = "Relative multihazard risk (multiplicative)")
-p_multihazard_add <- ~plot(multivariate_add_raster, col = viridis(100), main = "Relative multihazard risk (additive)")
+p_multihazard_multiply <- ~plot(multivariate_multiply_raster, col = viridis(100), main = "Relative multihazard (multiplicative)")
+p_multihazard_add <- ~plot(multivariate_add_raster, col = viridis(100), main = "Relative multihazard (additive)")
 
 # put the individual hazard plots together
 hazard_plots <- plot_grid(p_earthquake, p_fire, p_flood, p_multihazard_multiply,
                           p_tornado, p_hurricane.stormsurge, p_hurricane.wind, p_multihazard_add, nrow = 2, ncol = 4)
 
 # Save the figure to disk
-png("figures/multihazard-risk_conus.png", width = 30, height = 10, units = "in", res = 600)
+png("figures/multihazard-and-single-hazard-cdf_conus.png", width = 30, height = 10, units = "in", res = 600)
 hazard_plots
 dev.off()
 
-png("figures/multihazard-risk-multiplicative_conus.png", width = 20, height = 10, units = "in", res = 600)
-plot(multivariate_multiply_raster, col = viridis(100), main = "Relative multihazard risk (multiplicative)")
+png("figures/multihazard-multiplicative_conus.png", width = 20, height = 10, units = "in", res = 600)
+plot(multivariate_multiply_raster, col = viridis(100), main = "Relative multiplicative multihazard")
 dev.off()
 
-png("figures/multihazard-risk-additive_conus.png", width = 20, height = 10, units = "in", res = 600)
-plot(multivariate_add_raster, col = viridis(100), main = "Relative multihazard risk (additive)")
+png("figures/multihazard-additive_conus.png", width = 20, height = 10, units = "in", res = 600)
+plot(multivariate_add_raster, col = viridis(100), main = "Relative additive multihazard")
+dev.off()
+
+
+# show raw hazard values instead of cdf's for unihazards ------------------
+
+# Create individual rasters of the marginal Pr(X <= x) values for each hazard
+earthquake <- hazards[[1]]
+values(earthquake) <- multihazard_dt$earthquake
+
+fire <- hazards[[1]]
+values(fire) <- multihazard_dt$fire
+
+flood <- hazards[[1]]
+values(flood) <- multihazard_dt$flood
+
+hurricane.stormsurge <- hazards[[1]]
+values(hurricane.stormsurge) <- multihazard_dt$hurricane.stormsurge
+
+hurricane.wind <- hazards[[1]]
+values(hurricane.wind) <- multihazard_dt$hurricane.wind
+
+tornado <- hazards[[1]]
+values(tornado) <- multihazard_dt$tornado
+
+
+# Set up the plots for arranging in a multi-panel plot
+p_earthquake <- ~plot(earthquake, col = colorspace::sequential_hcl(n = 100, palette = "BrwnYl"), main = "Relative earthquake hazard")
+p_fire <- ~plot(fire, col = viridis(100, option = "inferno"), main = "Relative fire hazard")
+p_flood <- ~plot(flood, col = colorspace::sequential_hcl(n = 100, palette = "Teal"), main = "Relative flood hazard")
+p_tornado <- ~plot(tornado, col = viridis(100, option = "E"), main = "Relative tornado hazard")
+p_hurricane.stormsurge <- ~plot(hurricane.stormsurge, col = colorspace::sequential_hcl(n = 100, palette = "Dark Mint"), main = "Relative hurricane stormsurge hazard")
+p_hurricane.wind <- ~plot(hurricane.wind, col = colorspace::sequential_hcl(n = 100, palette = "Purple-Blue"), main = "Relative hurricane wind hazard")
+
+p_multihazard_multiply <- ~plot(multivariate_multiply_raster, col = viridis(100), main = "Relative multihazard (multiplicative)")
+p_multihazard_add <- ~plot(multivariate_add_raster, col = viridis(100), main = "Relative multihazard (additive)")
+
+# put the individual hazard plots together
+hazard_plots <- plot_grid(p_earthquake, p_fire, p_flood, p_multihazard_multiply,
+                          p_tornado, p_hurricane.stormsurge, p_hurricane.wind, p_multihazard_add, nrow = 2, ncol = 4)
+
+# Save the figure to disk
+png("figures/multihazard-cdf-and-single-hazard-raw_conus.png", width = 30, height = 10, units = "in", res = 600)
+hazard_plots
 dev.off()
