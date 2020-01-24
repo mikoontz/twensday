@@ -16,10 +16,10 @@ library(gridGraphics)
 library(coop)
 
 # Get the hazard rasters and stack them.
-hazard_list <- list.files("output/hazards/", full.names = TRUE)
+hazard_list <- list.files("output/hazards/", full.names = TRUE, pattern = "zillow")
 hazards <- lapply(hazard_list, raster::raster) %>% raster::stack()
 hazard_names <- 
-  list.files("output/hazards/") %>% 
+  list.files("output/hazards/", pattern  = "zillow") %>% 
   str_split(pattern = "_", simplify = TRUE) %>% 
   as.data.frame(stringsAsFactors = FALSE) %>% 
   dplyr::pull(V1) %>% 
@@ -128,12 +128,12 @@ values(tornado) <- multihazard_dt$tornado
 
 
 # Set up the plots for arranging in a multi-panel plot
-p_earthquake <- ~plot(earthquake, col = colorspace::sequential_hcl(n = 100, palette = "BrwnYl"), main = "Relative earthquake hazard")
-p_fire <- ~plot(fire, col = viridis(100, option = "inferno"), main = "Relative fire hazard")
-p_flood <- ~plot(flood, col = colorspace::sequential_hcl(n = 100, palette = "Teal"), main = "Relative flood hazard")
-p_tornado <- ~plot(tornado, col = viridis(100, option = "E"), main = "Relative tornado hazard")
-p_hurricane.stormsurge <- ~plot(hurricane.stormsurge, col = colorspace::sequential_hcl(n = 100, palette = "Dark Mint"), main = "Relative hurricane stormsurge hazard")
-p_hurricane.wind <- ~plot(hurricane.wind, col = colorspace::sequential_hcl(n = 100, palette = "Purple-Blue"), main = "Relative hurricane wind hazard")
+p_earthquake <- ~plot(earthquake, col = colorspace::sequential_hcl(n = 100, palette = "BrwnYl"), main = "Earthquake hazard")
+p_fire <- ~plot(fire, col = viridis(100, option = "inferno"), main = "Fire hazard")
+p_flood <- ~plot(flood, col = colorspace::sequential_hcl(n = 100, palette = "Teal"), main = "Flood hazard")
+p_tornado <- ~plot(tornado, col = viridis(100, option = "E"), main = "Tornado hazard")
+p_hurricane.stormsurge <- ~plot(hurricane.stormsurge, col = colorspace::sequential_hcl(n = 100, palette = "Dark Mint"), main = "Hurricane stormsurge hazard")
+p_hurricane.wind <- ~plot(hurricane.wind, col = colorspace::sequential_hcl(n = 100, palette = "Purple-Blue"), main = "Hurricane wind hazard")
 
 p_multihazard_multiply <- ~plot(multivariate_multiply_raster, col = viridis(100), main = "Relative multihazard (multiplicative)")
 p_multihazard_add <- ~plot(multivariate_add_raster, col = viridis(100), main = "Relative multihazard (additive)")
