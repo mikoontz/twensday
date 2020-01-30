@@ -31,6 +31,19 @@ multihazard_matrix <- getValues(hazards)
 # Convert to a data.table for fast manipulation
 multihazard_dt <- as.data.table(multihazard_matrix) %>% setNames(hazard_names)
 
+# Assign a unique cell ID to each row 
+multihazard_dt[, cellID := 1:.N]
+
+# create a data.table that has no NAs
+complete_cases_idx <- which(complete.cases(multihazard_dt))
+no_na_hazmat <- multihazard_dt[complete_cases_idx, ]
+
+no_na_hazmat[, cellID_noNA := 1:.N]
+
+# write raw values to disk
+data.table::fwrite(x = no_na_hazmat, file = file.path("output", "multihazard-raw_conus.csv"))
+
+
 # Calculate the marginal CDFs for each hazard using the fast ranking technique
 multihazard_dt[, `:=`(earthquake_prob = frankv(earthquake, na.last = "keep", ties.method = "max") / length(which(!is.na(earthquake))),
                       fire_prob = frankv(fire, na.last = "keep", ties.method = "max") / length(which(!is.na(fire))),
