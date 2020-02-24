@@ -70,10 +70,6 @@ if(!file.exists(hazard_path_out) | overwrite) {
   
   unlink(hazard_path_tmp)
   
-    # Make 0/NA handling consistent by using a 0 within CONUS for "no hazard"
-  hazard <- 
-    rasterDT::subsDT(x = hazard, dict = data.table(by = NA, which = 0), subsWithNA = FALSE)
-
   # Mask out the pixels outside of CONUS using the water mask derived from the 
   # USAboundaries package high resolution CONUS shapefile (rasterized to the Zillow
   # grid) and the flood hazard layer, with all values of 999 masked out (representing

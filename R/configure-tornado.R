@@ -30,6 +30,7 @@ overwrite <- FALSE
 
 if(!file.exists(hazard_path_out) | overwrite) {
   if(!file.exists(hazard_path_unmasked) | overwrite) {
+
     # Get the tornado data
     tornado_paths <- tornadoes() %>%
       as('sf') %>%
@@ -49,7 +50,6 @@ if(!file.exists(hazard_path_out) | overwrite) {
     # Fig. 6 showing mean tornado path widths approx 300m
     buffered_paths <- 
       st_buffer(tornado_paths, dist = 300)
-    
     # Compute an annual empirical frequency for each grid cell
     # (# years with events / total # years)
     # and save to a tif file
@@ -97,6 +97,17 @@ if(!file.exists(hazard_path_out) | overwrite) {
     vx <- velox::velox(x = tornado_prob_1000)
     
     # meanFocal operation takes about 40 minutes on the Alienware. 
+    tornado_counts <- buffered_paths %>%
+      group_by(yr) %>%
+      summarize %>% 
+      st_cast("MULTIPOLYGON") %>%
+      fasterize(raster = empty_grid, fun = 'sum', background = 0)
+    
+    
+    tornado_freq <- tornado_counts / n_year
+    plot(tornado_freq)
+    
+    # meanFocal operation takes about 38 minutes on the Alienware. 
     # Velox should be quite a bit faster than the raster::focal()
     # implementation. See http://philipphunziker.com/velox/benchmark.html
     vx$meanFocal(weights = gf)
@@ -138,6 +149,18 @@ if(!file.exists(hazard_path_out) | overwrite) {
     raster::writeRaster(x = hazard_scaled, filename = hazard_path_unmasked, overwrite = TRUE)
     
   }
+    plot(rg, col = viridis::viridis(100))
+    
+    rg_01 <- rg / cellStats(rg, stat = "sum")
+    rg_scaled <- rg_01 * cellStats(tornado_freq, stat = "sum")
+    
+    cellStats(tornado_freq, stat = "sum")
+    cellStats(rg_scaled, stat = "sum")
+    
+    raster::writeRaster(x = rg_scaled, filename = hazard_path_unmasked)
+  }
+  
+  hazard <- raster::raster(hazard_path_unmasked)
   
   # Mask out the pixels outside of CONUS using the water mask derived from the 
   # USAboundaries package high resolution CONUS shapefile (rasterized to the Zillow
@@ -148,9 +171,9 @@ if(!file.exists(hazard_path_out) | overwrite) {
   }
   
   mask <- raster::raster("output/water-mask_zillow-grid.tif")
-  
   # overwrite R object `hazard` to be the newly aligned and warped layer
-  hazard <-
+
+hazard <-
     raster::raster(hazard_path_unmasked) %>% 
     raster::mask(mask = mask)
   
